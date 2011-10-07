@@ -23,7 +23,10 @@ echo "*****************************"
 echo "* plumbing.php is installed *"
 echo "*****************************"
 echo
-echo "Now add the following line to your bash.profile:"
+echo "Next, add the following line to your bash.profile:"
 echo '[[ -s "$HOME/.plumbing.php/scripts/plumbing" ]] && source "$HOME/.plumbing.php/scripts/plumbing"'
+echo
+echo "Now it's time to install some PHP:"
+echo "$ plumbing install php-5.3.8"
 echo
 echo "Thanks for using plumbing.php!"
