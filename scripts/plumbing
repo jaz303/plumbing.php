@@ -1,0 +1,156 @@
+export PLUMBING_HOME=$HOME/.plumbing.php
+export PLUMBING_PHP_VERSION=system
+
+PLUMBING_VERSIONS_DIR=$PLUMBING_HOME/versions
+
+function plumbing_list {
+    echo "Installed PHP versions:"
+    entries=$(ls $PLUMBING_VERSIONS_DIR/ 2>/dev/null)
+    if [[ -n "$entries" ]]
+    then
+        for entry in $entries
+        do
+            if [[ $entry == $PLUMBING_PHP_VERSION ]]; then
+                echo " * $(basename $entry)"
+            else
+                echo "   $(basename $entry)"
+            fi
+        done
+    else
+      echo "  (no PHP versions installed)"
+    fi
+};
+
+function plumbing_use {
+    path_without_plumbing=""
+    p=$PATH
+    until [ "${p}" = "${d}" ]; do
+        d=${p%%:*}; p=${p#*:};
+        if [[ $d != *plumbing.php* ]]; then
+            path_without_plumbing="${path_without_plumbing}:${d}"
+        fi
+    done
+    path_without_plumbing=${path_without_plumbing:1}
+    
+    if [[ $1 == "system" ]]; then
+        export PLUMBING_PHP_VERSION=system
+        export PATH=$path_without_plumbing
+    elif [[ -d $PLUMBING_VERSIONS_DIR/$1 ]]; then
+        export PLUMBING_PHP_VERSION=$1
+        export PATH=$PLUMBING_VERSIONS_DIR/$1/bin:$path_without_plumbing
+    else
+        echo "Error: PHP version '$1' is not installed"
+        __plumbing_show_version_help
+        false
+    fi
+};
+
+function plumbing_start_server {
+    $PLUMBING_HOME/scripts/server $PLUMBING_HOME $@
+};
+
+function plumbing {
+    where_i_was_earlier=$(pwd)
+    case $1 in
+    "list")
+        plumbing_list
+        ;;
+    "install")
+        if [[ -n "$2" ]]; then
+            
+            # download url is either explicit or implied from php version
+            if [[ -n "$3" ]]; then
+                php_download_url=$3
+            else
+                php_download_url="http://$(cat $PLUMBING_HOME/etc/mirror)/get/${2}.tar.bz2/from/this/mirror"
+            fi
+        
+            prefix=$PLUMBING_VERSIONS_DIR/$2
+            if [[ -e $prefix ]]
+            then
+                echo "error: version $2 already installed"
+                false
+            else
+                cd $PLUMBING_HOME/src
+                archive="${2}.archive"
+                __plumbing_download $php_download_url $archive \
+                    && __plumbing_extract $archive $2 \
+                    && cd $2 \
+                    && __plumbing_make_install $prefix \
+                    && cd ..
+                cd $where_i_was_earlier
+            fi
+            
+        else
+            echo "Usage:"
+            echo "  plumbing install version-id [download-url]"
+            echo "  example version-id: php-5.3.8"
+            false
+        fi
+        ;;
+    "use")
+        if [[ -n "$2" ]]; then
+            plumbing_use $2
+        else
+            echo "Usage:"
+            echo "  plumbing use version-id"
+            echo
+            __plumbing_show_version_help
+            false
+        fi
+        ;;
+    "server")
+        shift 1
+        plumbing_start_server $@
+        ;;
+    *)
+        echo "unknown command"
+        false
+        ;;
+    esac
+}
+
+# download url $1 to file $2
+function __plumbing_download {
+    echo "Downloading $1 to $2"
+    curl -L --max-redirs 10 -o $2 $1
+};
+
+# extract archive $1 to dir $2
+function __plumbing_extract {
+    tar xf $1
+    if [[ ! -d $2 ]]; then
+        top_level_dir=$(tar tf $1 | sed -e 's@/.*@@' | uniq)
+        mv $top_level_dir $2
+    fi
+    rm $1
+};
+
+# install php src distro in current dir with prefix $1
+function __plumbing_make_install {
+    # TODO: inject correct flags
+    make distclean
+    ./configure --prefix=$1 --disable-all --enable-debug --enable-cgi && make && mkdir -p $1 && make install
+};
+
+function __plumbing_show_version_help {
+    echo "(see available versions with \`plumbing list\`)"
+};
+
+function __plumbing_upgrade_lighttpd {
+    lighttpd_url="http://download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.29.tar.gz"
+    where_i_was_earlier=$(pwd)
+    
+    cd $PLUMBING_HOME
+    rm -rf lighttpd
+    cd tmp
+    rm -rf lighttpd*
+    curl -o lighttpd.tgz $lighttpd_url
+    tar xfz lighttpd.tgz
+    cd lighttpd-*
+    ./configure --prefix=$PLUMBING_HOME/lighttpd && make && make install
+    cd ..
+    rm -rf lighttpd*
+    
+    cd $where_i_was_earlier
+};

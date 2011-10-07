@@ -1,0 +1,29 @@
+#!/bin/bash
+
+curl "creating directory structure..."
+mkdir -p $HOME/.plumbing.php/{etc,scripts,src,versions,tmp}
+cd $HOME/.plumbing.php
+
+curl "getting files..."
+curl -o scripts/plumbing
+curl -o scripts/server
+chmod +x scripts/server
+
+curl -o etc/lighttpd.conf.php 
+echo "www.php.net" > etc/mirror
+
+echo "sourcing plumbing..."
+source $HOME/.plumbing/scripts/plumbing
+
+echo "installing lighttpd..."
+__plumbing_upgrade_lighttpd
+
+echo
+echo "*****************************"
+echo "* plumbing.php is installed *"
+echo "*****************************"
+echo
+echo "Now add the following line to your bash.profile:"
+echo '[[ -s "$HOME/.plumbing.php/scripts/plumbing" ]] && source "$HOME/.plumbing.php/scripts/plumbing"'
+echo
+echo "Thanks for using plumbing.php!"

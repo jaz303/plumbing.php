@@ -1,0 +1,177 @@
+#!/usr/bin/env php
+<?php
+$argv = $_SERVER['argv'];
+array_shift($argv);
+
+define('PLUMBING_ROOT', array_shift($argv));
+
+function puts($line) {
+    fwrite(STDERR, $line . "\n");
+}
+
+class PlumbingServer
+{
+    private $lighttpd_path;
+    private $argv;
+    
+    private $php_version                = null;
+    private $php_path                   = null;
+    private $port                       = 4000;
+    private $document_root              = './';
+    private $dispatcher                 = null;
+    private $directory_listing_enabled  = false;
+    private $ini_options                = array();
+    
+    //
+    // PHP
+    
+    public function set_php_version($pv) { $this->php_version = $pv; }
+    public function php_version() { return $this->php_version; }
+    public function php_path() { return $this->php_path; }
+    
+    public function php_path_with_ini_args() {
+        $path = $this->php_path();
+        foreach ($this->ini_options as $k => $v) {
+            $path .= " -d " . escapeshellarg("$k=$v");
+        }
+        return $path;
+    }
+    
+    //
+    // Port
+    
+    public function set_port($p) { $this->port = (int) $p; }
+    public function port() { return $this->port; }
+    
+    //
+    // Document root
+    
+    public function set_document_root($dr) { $this->document_root = $dr; }
+    public function document_root() { return $this->document_root; }
+    public function real_document_root() { return realpath($this->document_root()); }
+    
+    //
+    // Dispatcher
+    
+    public function set_dispatcher($d) { $this->dispatcher = $d; }
+    public function dispatcher() { return $this->dispatcher; }
+    
+    //
+    // Dir listing
+    
+    public function enable_directory_listing() { $this->directory_listing_enabled = true; }
+    public function disable_directory_listing() { $this->directory_listing_enabled = false; }
+    public function is_directory_listing_enabled() { return $this->directory_listing_enabled; }
+    
+    //
+    // INI
+    
+    public function set_ini($k, $v) { $this->ini_options[$k] = $v; }
+    
+    //
+    // Config paths
+    
+    private function config_root() { return PLUMBING_ROOT . '/tmp/' . basename(getcwd()) . ':' . $this->port . '.' . getmypid(); }
+    public function socket_path() { return $this->config_root() . '.socket'; }
+    public function config_path() { return $this->config_root() . '.conf'; }
+    
+    //
+    //
+    
+    public function __construct($lighttpd_path, $argv) {
+        $this->lighttpd_path    = $lighttpd_path;
+        $this->argv             = $argv;
+    }
+    
+    public function go() {
+        try {
+            $this->cleanup_old_config_files();
+            $this->configure();
+            $this->parse_command_line();
+            $this->set_php_path();
+            $this->summary();
+            $this->start();
+        } catch (Exception $e) {
+            echo $e->getMessage();
+            return false;
+        }
+    }
+    
+    private function cleanup_old_config_files() {
+        foreach (glob(PLUMBING_ROOT . '/tmp/*.conf') as $file) {
+            if (time() - filemtime($file) > 60) unlink($file);
+        }
+    }
+    
+    private function configure() {
+        $dir = getcwd();
+        do {
+            if (file_exists($dir . '/plumbing.php')) {
+                chdir($dir);
+                require $dir . '/plumbing.php';
+                break;
+            }
+            $dir_len = strlen($dir);
+            $dir = dirname($dir);
+            if (in_array(strlen($dir), array(0, $dir_len))) {
+                break;
+            }
+        } while (true);
+    }
+    
+    private function parse_command_line() {
+        // TODO!
+    }
+    
+    private function set_php_path() {
+        if ($this->php_version) {
+            $this->php_path = PLUMBING_ROOT . '/versions/' . $this->php_version . '/bin/php-cgi';
+        } else {
+            $this->php_path = trim(`which php-cgi`);
+        }
+        
+        if (!$this->php_path) {
+            throw new Exception("php-cgi not found.");
+        }
+    }
+    
+    private function summary() {
+        puts("=====================");
+        puts("| lighttpd starting |");
+        puts("=====================");
+        puts("");
+        puts("Working directory : " . getcwd());
+        puts("PHP               : " . $this->php_path);
+        puts("Document root     : " . $this->document_root);
+        puts("Port              : " . $this->port);
+        puts("Dispatcher        : " . ($this->dispatcher ? $this->dispatcher : '(none)'));
+        puts("Directory listing : " . ($this->directory_listing_enabled ? "yes" : "no"));
+        puts("");
+    }
+    
+    private function start() {
+        file_put_contents($this->config_path(), $this->generate_config_file());
+        
+        $exit_status;
+        system("{$this->lighttpd_path} -D -f {$this->config_path()}", $exit_status);
+        
+        @unlink($this->config_path());
+        @unlink($this->socket_path());
+        
+        if ($exit_status != 0) {
+            exit(1);
+        }
+    }
+    
+    private function generate_config_file() {
+        ob_start();
+        require PLUMBING_ROOT . '/etc/lighttpd.conf.php';
+        return ob_get_clean();
+    }
+}
+
+$server = new PlumbingServer(PLUMBING_ROOT . '/lighttpd/sbin/lighttpd', $argv);
+if (!$server->go()) {
+    puts("Error starting lighttpd.");
+}
+?>
