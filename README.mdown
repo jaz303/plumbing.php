@@ -3,3 +3,57 @@ Installation
 ------------
 
     $ bash < <(curl -s https://raw.github.com/jaz303/plumbing.php/master/installer)
+    
+Usage
+-----
+
+__`plumbing list`: list installed PHP versions__
+
+    $ plumbing list
+    Installed PHP versions:
+       php-5.3.6
+       php-5.3.8
+       
+__`plumbing install`: download and install a new PHP version__
+
+    # download from standard location on php.net
+    $ plumbing install php-5.3.6
+    
+    # specify download URL manually
+    $ plumbing install php-5.4.0beta1 http://downloads.php.net/stas/php-5.4.0beta1.tar.bz2
+    
+
+__`plumbing use`: change to a specified PHP version__
+    
+    $ php -v
+    PHP 5.3.4 (cli) (built: Dec 15 2010 12:15:07) 
+    Copyright (c) 1997-2010 The PHP Group
+    Zend Engine v2.3.0, Copyright (c) 1998-2010 Zend Technologies
+    
+    $ plumbing use php-5.3.8
+    
+    $ php -v
+    PHP 5.3.8 (cli) (built: Oct  7 2011 22:52:40) (DEBUG)
+    Copyright (c) 1997-2011 The PHP Group
+    Zend Engine v2.3.0, Copyright (c) 1998-2011 Zend Technologies
+    
+    # `plumbing use system` to revert to system PHP, if any
+
+__`plumbing server`: start lighttpd server in the current directory__
+
+Documentation for configuration options coming soon!
+
+    $ plumbing server
+    =====================
+    | lighttpd starting |
+    =====================
+
+    Working directory : /Users/jason
+    PHP               : /Users/jason/.plumbing.php/versions/php-5.3.8/bin/php-cgi
+    Document root     : ./
+    Port              : 4000
+    Dispatcher        : (none)
+    Directory listing : no
+
+    2011-10-07 23:11:23: (log.c.166) server started
+
