@@ -1,10 +1,10 @@
 #!/bin/bash
 
-curl "creating directory structure..."
+echo "creating directory structure..."
 mkdir -p $HOME/.plumbing.php/{etc,scripts,src,versions,tmp}
 cd $HOME/.plumbing.php
 
-curl "getting files..."
+echo "getting files..."
 curl -o scripts/plumbing https://raw.github.com/jaz303/plumbing.php/master/scripts/plumbing
 curl -o scripts/server https://raw.github.com/jaz303/plumbing.php/master/scripts/server
 chmod +x scripts/server
