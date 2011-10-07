@@ -5,11 +5,11 @@ mkdir -p $HOME/.plumbing.php/{etc,scripts,src,versions,tmp}
 cd $HOME/.plumbing.php
 
 curl "getting files..."
-curl -o scripts/plumbing
-curl -o scripts/server
+curl -o scripts/plumbing https://raw.github.com/jaz303/plumbing.php/master/scripts/plumbing
+curl -o scripts/server https://raw.github.com/jaz303/plumbing.php/master/scripts/server
 chmod +x scripts/server
 
-curl -o etc/lighttpd.conf.php 
+curl -o etc/lighttpd.conf.php https://raw.github.com/jaz303/plumbing.php/master/etc/lighttpd.conf.php
 echo "www.php.net" > etc/mirror
 
 echo "sourcing plumbing..."
