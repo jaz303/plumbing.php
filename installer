@@ -13,7 +13,7 @@ curl -o etc/lighttpd.conf.php https://raw.github.com/jaz303/plumbing.php/master/
 echo "www.php.net" > etc/mirror
 
 echo "sourcing plumbing..."
-source $HOME/.plumbing/scripts/plumbing
+source $HOME/.plumbing.php/scripts/plumbing
 
 echo "installing lighttpd..."
 __plumbing_upgrade_lighttpd
