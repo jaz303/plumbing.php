@@ -129,7 +129,6 @@ function __plumbing_extract {
 
 # install php src distro in current dir with prefix $1
 function __plumbing_make_install {
-    prefix=shift 1
     make distclean
     ./configure --prefix=$prefix $(cat $PLUMBING_HOME/etc/flags) && make && mkdir -p $prefix && make install
 };
