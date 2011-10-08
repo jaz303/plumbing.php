@@ -73,7 +73,7 @@ function plumbing {
             else
                 cd $PLUMBING_HOME/src
                 archive="${2}.archive"
-                __plumbing_download $php_download_url $archive \
+                __plumbing_download $php_download_url $archive $2 \
                     && __plumbing_extract $archive $2 \
                     && cd $2 \
                     && __plumbing_make_install $prefix \
@@ -110,10 +110,15 @@ function plumbing {
     esac
 }
 
-# download url $1 to file $2
+# download url $1 to file $2, only if dir $3 does not exist
 function __plumbing_download {
-    echo "Downloading $1 to $2"
-    curl -L --max-redirs 10 -o $2 $1
+    if [[ ! -d $3 ]]; then
+        echo "Downloading $1 to $2"
+        curl -L --max-redirs 10 -o $2 $1
+    else
+        echo "Source directory \`$3\` exsits, skipping downloading"
+    fi
+        
 };
 
 # extract archive $1 to dir $2
