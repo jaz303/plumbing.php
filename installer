@@ -9,6 +9,9 @@ curl -o scripts/plumbing https://raw.github.com/jaz303/plumbing.php/master/scrip
 curl -o scripts/server https://raw.github.com/jaz303/plumbing.php/master/scripts/server
 chmod +x scripts/server
 
+curl -o etc/flags.dist https://raw.github.com/jaz303/plumbing.php/master/etc/flags.dist
+[[ ! -f etc/flags ]] && cp etc/flags.dist etc/flags
+
 curl -o etc/lighttpd.conf.php https://raw.github.com/jaz303/plumbing.php/master/etc/lighttpd.conf.php
 echo "www.php.net" > etc/mirror
 
