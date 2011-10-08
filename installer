@@ -13,7 +13,7 @@ curl -o etc/flags.dist https://raw.github.com/jaz303/plumbing.php/master/etc/fla
 [[ ! -f etc/flags ]] && cp etc/flags.dist etc/flags
 
 curl -o etc/lighttpd.conf.php https://raw.github.com/jaz303/plumbing.php/master/etc/lighttpd.conf.php
-echo "www.php.net" > etc/mirror
+[[ ! -f etc/mirror ]] && echo "www.php.net" > etc/mirror
 
 echo "sourcing plumbing..."
 source $HOME/.plumbing.php/scripts/plumbing
