@@ -52,9 +52,11 @@ function plumbing_start_server {
 function plumbing {
     where_i_was_earlier=$(pwd)
     case $1 in
+    
     "list")
         plumbing_list
         ;;
+    
     "install")
         if [[ -n "$2" ]]; then
             
@@ -89,6 +91,7 @@ function plumbing {
             false
         fi
         ;;
+    
     "use")
         if [[ -n "$2" ]]; then
             plumbing_use $2
@@ -100,17 +103,31 @@ function plumbing {
             false
         fi
         ;;
+    
     "recompile")
-        __plumbing_cd_src $2 \
-            && __plumbing_make_install $(__plumbing_version_dir $2)
+        if [[ -n "$2" ]]; then
+            __plumbing_cd_src $2 \
+                && __plumbing_make_install $(__plumbing_version_dir $2)
+            cd $where_i_was_earlier
+        else
+            echo "Usage:"
+            echo "  plumbing recompile version-id"
+            echo
+            __plumbing_show_version_help
+            false
+        fi
+        ;;
+    
     "server")
         shift 1
         plumbing_start_server $@
         ;;
+    
     *)
         echo "unknown command"
         false
         ;;
+    
     esac
 }
 
