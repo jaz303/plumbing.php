@@ -1,1 +1,1 @@
---disable-all --enable-debug --enable-cgi
+--enable-cgi --with-gd --with-mysql=mysqlnd --with-mysqli=mysqlnd
