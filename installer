@@ -35,5 +35,6 @@ echo '[[ -s "$HOME/.plumbing.php/scripts/plumbing" ]] && source "$HOME/.plumbing
 echo
 echo "Now it's time to install some PHP:"
 echo "$ plumbing install php-5.3.8"
+echo "$ plumbing install php-5.4.0beta1 http://downloads.php.net/stas/php-5.4.0beta1.tar.bz2"
 echo
 echo "Thanks for using plumbing.php!"
