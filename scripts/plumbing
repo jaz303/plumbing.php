@@ -100,6 +100,9 @@ function plumbing {
             false
         fi
         ;;
+    "recompile")
+        __plumbing_cd_src $2 \
+            && __plumbing_make_install $(__plumbing_version_dir $2)
     "server")
         shift 1
         plumbing_start_server $@
@@ -153,4 +156,23 @@ function __plumbing_upgrade_lighttpd {
     rm -rf lighttpd*
     
     cd $where_i_was_earlier
+};
+
+function __plumbing_check_version_exists {
+    if [[ ! -d $(__plumbing_version_dir $1) ]]; then
+        echo "PHP version \`$1\` is not installed."
+        false
+    fi
+}
+
+function __plumbing_cd_src {
+    cd $PLUMBING_HOME/src/$1
+};
+
+function __plumbing_src_dir {
+    echo $PLUMBING_HOME/src/$1
+};
+
+function __plumbing_version_dir {
+    echo $PLUMBING_HOME/versions/$1
 };
